@@ -8,7 +8,7 @@ class BasicTest : public BulletOpenGLApplication
 public:
 
 	BasicTest();
-	BasicTest(ProjectionType projectionType);
+	BasicTest(ProjectionMode projectionType);
 	~BasicTest();
 
 	virtual void InitializePhysics() override;

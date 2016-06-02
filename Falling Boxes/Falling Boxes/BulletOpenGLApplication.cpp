@@ -2,13 +2,15 @@
 #include "BulletOpenGLApplication.h"
 #include <iostream>
 
+#pragma region INITIALIZATION
+
 BulletOpenGLApplication::BulletOpenGLApplication()
 {
 	std::cout << "Constructing BulletOpenGLApplication and building camera" << std::endl;
 	// Create Camera manager
 	m_cameraManager = new CameraManager(
 		btVector3(0.0f, 0.0f, 0.0f),	// Target
-		30.0f,							// Distance
+		10.0f,							// Distance
 		20.0f,							// Pitch
 		0.0f,							// Yaw
 		btVector3(0.0f, 1.0f, 0.0f),	// Up Vector
@@ -16,42 +18,14 @@ BulletOpenGLApplication::BulletOpenGLApplication()
 		1000.0f);						// far plane
 }
 
-BulletOpenGLApplication::BulletOpenGLApplication(ProjectionType mode) {
+BulletOpenGLApplication::BulletOpenGLApplication(ProjectionMode mode) : BulletOpenGLApplication() {
 	std::cout << "Constructing BulletOpenGLApplication and building camera" << std::endl;
-	// Create Camera manager
-	m_cameraManager = new CameraManager(
-		btVector3(0.0f, 0.0f, 0.0f),	// Target
-		30.0f,							// Distance
-		0.0f,							// Pitch
-		0.0f,							// Yaw
-		btVector3(0.0f, 1.0f, 0.0f),	// Up Vector
-		1.0f,							// near plane
-		1000.0f);						// far plane
-	switch (mode)
-	{
-	case PERSPECTIVE:
-		
-		break;
-	case ORTHOGRAPHIC:
-		m_cameraManager->SetProjectionType(ORTHOGRAPHIC);
-		break;
-	default:
-		break;
-	}
-	
+	Constants::GetInstance().SetProjectionMode(mode);
 }
 
 BulletOpenGLApplication::~BulletOpenGLApplication() {
 	// Shutdown physics system
 	ShutdownPhysics();
-}
-
-void BulletOpenGLApplication::SetScreenHeight(int screenHeight) {
-	m_screenHeight = screenHeight;
-}
-
-void BulletOpenGLApplication::SetScreenWidth(int screenWidth) {
-	m_screenWidth = screenWidth;
 }
 
 void BulletOpenGLApplication::Initialize() {
@@ -105,19 +79,37 @@ void BulletOpenGLApplication::Initialize() {
 
 }
 
+void BulletOpenGLApplication::SetScreenWidth(int width) {
+	Constants::GetInstance().SetScreenWidth(width);
+}
+
+void BulletOpenGLApplication::SetScreenHeight(int height) {
+	Constants::GetInstance().SetScreenHeight(height);
+}
+
+#pragma endregion INITIALIZATION
+
+#pragma region GLUT_CALLBACKS
+
+#pragma region KEYBOARD
+
 void BulletOpenGLApplication::Keyboard(unsigned char key, int x, int y) {
 	// This function is called by FreeGLUT whenever
 	// generic keys are pressed down.
 	// Common to all projection types
 	switch (key)
 	{
-	case 'v':
+	case 'v': {
 		// toggle wireframe debug drawing
 		m_pDebugDrawer->ToggleDebugFlag(btIDebugDraw::DBG_DrawWireframe);
+		printf("toggle debug wireframe\n");
+	}
 		break;
-	case 'b':
+	case 'b': {
 		// toggle AABB debug drawing
 		m_pDebugDrawer->ToggleDebugFlag(btIDebugDraw::DBG_DrawAabb);
+		printf("toggle debug flag\n");
+	}
 		break;
 	case 'z': m_cameraManager->ZoomCamera(+CAMERA_STEP_SIZE); break;			// 'z' zooms in
 	case 'x': m_cameraManager->ZoomCamera(-CAMERA_STEP_SIZE); break;			// 'x' zoom out
@@ -129,21 +121,7 @@ void BulletOpenGLApplication::Keyboard(unsigned char key, int x, int y) {
 	default:
 		break;
 	}
-	// Switch for certain projection types
-	switch (m_cameraManager->GetProjectionType())
-	{
-	case PERSPECTIVE:
-		switch (key) {
-		//
-		}
-		break;
-	case ORTHOGRAPHIC:
-		//
-		break;
-	default:
-		break;
-	}
-	
+
 }
 
 void BulletOpenGLApplication::KeyboardUp(unsigned char key, int x, int y) {}
@@ -151,7 +129,7 @@ void BulletOpenGLApplication::KeyboardUp(unsigned char key, int x, int y) {}
 void BulletOpenGLApplication::Special(int key, int x, int y) {
 	// This function is called by FreeGLUT whenever special keys
 	// are pressed down, like the arrow keys, or Insert, Delete etc.
-	printf("Received Special Key\n");
+	//printf("Received Special Key\n");
 
 	switch (key) {
 		// the arrow keys rotate the camera up/down/left/right
@@ -165,21 +143,11 @@ void BulletOpenGLApplication::Special(int key, int x, int y) {
 		m_cameraManager->RotateCamera(PITCH, -CAMERA_STEP_SIZE); break;
 	}
 
-	switch (m_cameraManager->GetProjectionType())
-	{
-	case PERSPECTIVE:
-		//
-		break;
-	case ORTHOGRAPHIC:
-		//
-		break;
-	default:
-		break;
-	}
-	
 }
 
 void BulletOpenGLApplication::SpecialUp(int key, int x, int y) {}
+
+#pragma endregion KEYBOARD
 
 void BulletOpenGLApplication::Reshape(int w, int h) {
 	printf("BulletOpenGLApplication Reshape called\n");
@@ -189,35 +157,20 @@ void BulletOpenGLApplication::Reshape(int w, int h) {
 	// set the viewport
 	glViewport(0, 0, w, h);
 
-	m_screenWidth = w;
-	m_screenHeight = h;
-
-	printf("screen width = %f, screen height = %f\n", m_screenWidth, m_screenHeight);
-
-	// grab the screen width/height
-	m_cameraManager->SetScreenWidth(w);
-	m_cameraManager->SetScreenHeight(h);
+	Constants::GetInstance().SetScreenWidth(w);
+	Constants::GetInstance().SetScreenHeight(h);
 
 	// update the camera
 	m_cameraManager->UpdateCamera();
 	//m_cameraManager->PrintCameraLocation();
 
-	switch (m_cameraManager->GetProjectionType())	
-	{
-	case PERSPECTIVE:
-		
-		break;
-	case ORTHOGRAPHIC:
-		// 
-		break;
-	default:
-		break;
-	}
-
-	
 }
 
 void BulletOpenGLApplication::Idle() {
+
+	glutSetWindow(m_main_window_id);
+	glutPostRedisplay();
+
 	// this function is called frequently, whenever FreeGlut
 	// isn't busy processing its own events. It should be used
 	// to perform any updating and rendering tasks
@@ -234,17 +187,6 @@ void BulletOpenGLApplication::Idle() {
 
 	m_cameraManager->UpdateCamera();
 
-	switch (m_cameraManager->GetProjectionType())
-	{
-	case PERSPECTIVE:
-		//
-		break;
-	case ORTHOGRAPHIC:
-		break;
-	default:
-		break;
-	}
-
 	// render the scene
 	RenderScene();
 
@@ -256,6 +198,10 @@ void BulletOpenGLApplication::Mouse(int button, int state, int x, int y) {}
 void BulletOpenGLApplication::PassiveMotion(int x, int y) {}
 void BulletOpenGLApplication::Motion(int x, int y) {}
 void BulletOpenGLApplication::Display() {}
+
+#pragma endregion GLUT_CALLBACKS
+
+#pragma region DRAWING
 
 void BulletOpenGLApplication::DrawBox(const btVector3 &halfSize) {
 	float halfWidth = halfSize.x();
@@ -278,24 +224,24 @@ void BulletOpenGLApplication::DrawBox(const btVector3 &halfSize) {
 	// vertices above. Make it static so we don't waste 
 	// processing time recreating it over and over again
 	static int indices[36] = {
-			0, 1, 2,
-			3, 2, 1,
-			4, 0, 6,
-			6, 0, 2,
-			5, 1, 4,
-			4, 1, 0,
-			7, 3, 1,
-			7, 1, 5,
-			5, 4, 7,
-			7, 4, 6,
-			7, 2, 3,
-			7, 6, 2 };
+		0, 1, 2,
+		3, 2, 1,
+		4, 0, 6,
+		6, 0, 2,
+		5, 1, 4,
+		4, 1, 0,
+		7, 3, 1,
+		7, 1, 5,
+		5, 4, 7,
+		7, 4, 6,
+		7, 2, 3,
+		7, 6, 2 };
 
 	DrawWithTriangles(vertices, indices, 36);
 }
 
 void BulletOpenGLApplication::DrawPlane(const btVector3 &halfSize) {
-	
+
 
 	float halfWidth = halfSize.x();
 	float halfHeight = halfSize.y();
@@ -308,19 +254,6 @@ void BulletOpenGLApplication::DrawPlane(const btVector3 &halfSize) {
 		btVector3(halfWidth, -halfHeight, 0.0f),
 		btVector3(halfWidth, halfHeight, 0.0f),
 	};
-
-	if (m_cameraManager->GetProjectionType() == ORTHOGRAPHIC)
-	{
-		// Normalize vertices between -1 and 1
-		for (int index = 0; index < 4; index++) {
-
-			btVector3 *vec = &vertices[index];
-			vec->setX(Normalize(vec->getX(), 0, HEIGHT));
-			vec->setY(Normalize(vec->getY(), 0, WIDTH));
-			//printf("(x,y) = (%f,%f)\n", vec->getX(), vec->getY());
-
-		}
-	}
 
 	// create the indexes for each triangle, using the 
 	// vertices above. Make it static so we don't waste 
@@ -341,7 +274,7 @@ void BulletOpenGLApplication::DrawWithTriangles(const btVector3 *vertices, const
 	// increment the loop by 3 each time since we create a 
 	// triangle with 3 vertices at a time.
 
-	for (int i = 0; i < numberOfIndices; i+=3) {
+	for (int i = 0; i < numberOfIndices; i += 3) {
 		// get the three vertices for the triangle based
 		// on the index values set above
 		// use const references so we don't copy the object
@@ -368,6 +301,52 @@ void BulletOpenGLApplication::DrawWithTriangles(const btVector3 *vertices, const
 	glEnd();
 }
 
+void BulletOpenGLApplication::DrawShape(btScalar *transform, const btCollisionShape *pShape, const btVector3 &color) {
+
+	glColor3f(color.x(), color.y(), color.z());
+
+	// push the matrix stack
+
+	glPushMatrix();
+	glMultMatrixf(transform);
+
+	// make a different draw call based on object type
+	switch (pShape->getShapeType())
+	{
+	case BOX_SHAPE_PROXYTYPE: {
+		// assume the shape is a box, and typecast it
+		const btBoxShape *box = static_cast<const btBoxShape*>(pShape);
+		// get halfSize of the box
+		btVector3 halfSize = box->getHalfExtentsWithMargin();
+		// draw the box
+		// Don't think I should do this.. but whatever.
+		if (Constants::GetInstance().GetProjectionMode() == ORTHOGRAPHIC) {
+			DrawPlane(halfSize);
+		}
+		else {
+			DrawBox(halfSize);
+		}
+	}
+		break;
+	case BOX_2D_SHAPE_PROXYTYPE: {
+		// assume the shape is a 2d box (plane) and typecast it
+		const btBox2dShape *plane = static_cast<const btBox2dShape*> (pShape);
+		btVector3 halfSize = plane->getHalfExtentsWithMargin();
+		DrawPlane(halfSize);
+	}
+		break;
+	default:
+		// unsupported type
+		break;
+	}
+
+	glPopMatrix();
+
+}
+
+#pragma endregion DRAWING
+
+#pragma region SCENE
 
 void BulletOpenGLApplication::RenderScene() {
 
@@ -404,69 +383,34 @@ void BulletOpenGLApplication::UpdateScene(float dt) {
 	}
 }
 
-void BulletOpenGLApplication::DrawShape(btScalar *transform, const btCollisionShape *pShape, const btVector3 &color) {
+#pragma endregion SCENE
 
-
-	if (m_cameraManager->GetProjectionType() == ORTHOGRAPHIC)
-	{
-		// normalize translations
-		// ASSUMPTION: Scene and camera located on z-plane at 0
-		btScalar *x_trans = &transform[12];
-		btScalar *y_trans = &transform[13];
-		//printf("Translate (x,y) = (%f,%f)\n", *x_trans, *y_trans);
-		*x_trans = Normalize(*x_trans, 0, HEIGHT);
-		*y_trans = Normalize(*y_trans, 0, WIDTH);
-		//printf("Normalized (x,y) = (%f,%f)\n", *x_trans, *y_trans);
-	}
-
-	glColor3f(color.x(), color.y(), color.z());
-
-	// push the matrix stack
-
-	glPushMatrix();
-	glMultMatrixf(transform);
-
-	// make a different draw call based on object type
-	switch (pShape->getShapeType())
-	{
-	case BOX_SHAPE_PROXYTYPE: {
-		// assume the shape is a box, and typecast it
-		const btBoxShape *box = static_cast<const btBoxShape*>(pShape);
-		// get halfSize of the box
-		btVector3 halfSize = box->getHalfExtentsWithMargin();
-		// draw the box
-		DrawBox(halfSize);
-	}
-	case BOX_2D_SHAPE_PROXYTYPE: {
-		// assume the shape is a 2d box (plane) and typecast it
-		const btBox2dShape *plane = static_cast<const btBox2dShape*> (pShape);
-		btVector3 halfSize = plane->getHalfExtentsWithMargin();
-		DrawPlane(halfSize);
-	}
-	default:
-		// unsupported type
-		break;
-	}
-
-	glPopMatrix();
-
-}
-
-float BulletOpenGLApplication::GetPixelsToMeters(float distanceToCamera) {
-	// ASSUMPTION: Found this empirically;
-	return 0.00162*distanceToCamera + 0.0261;
-
-}
+#pragma region INTERACTION
 
 GameObject* BulletOpenGLApplication::CreateGameObject(
-	btCollisionShape *pShape, 
-	const float &mass, 
-	const btVector3 &color, 
-	const btVector3 &initialPosition, 
+	btCollisionShape *pShape,
+	const float &mass,
+	const btVector3 &color,
+	const btVector3 &initialPosition,
 	const btQuaternion &initialRotation) {
 
 	GameObject* pObject = new GameObject(pShape, mass, color, initialPosition, initialRotation);
 	// push it to the back of the list
+
+	switch (pObject->GetShape()->getShapeType())
+	{
+	case BOX_2D_SHAPE_PROXYTYPE: {
+		// assume the shape is a 2d box (plane) and typecast it
+		btRigidBody *body = pObject->GetRigidBody();
+		// ASSUMPTION: Limit motion along x-y plane
+		//printf("Allow in x y direction, disallow in z direction \n");
+		body->setLinearFactor(btVector3(1, 1, 0));
+		body->setAngularFactor(btVector3(0, 0, 1));
+	}
+	default:
+		break;
+	}
+
 	m_objects.push_back(pObject);
 	printf("Created Object and pushed to world\n");
 	// check if the world object is valid
@@ -477,31 +421,36 @@ GameObject* BulletOpenGLApplication::CreateGameObject(
 	}
 
 	return pObject;
+}
+
+btHingeConstraint *BulletOpenGLApplication::AddHingeConstraint(
+	GameObject *obj1,
+	GameObject *obj2,
+	const btVector3 &pivot1,
+	const btVector3 &pivot2,
+	const btVector3 &axis1,
+	const btVector3 &axis2,
+	btScalar lowLimit,
+	btScalar highLimit) {
+
+	btRigidBody *body1 = obj1->GetRigidBody();
+	btRigidBody *body2 = obj2->GetRigidBody();
+
+	btHingeConstraint *hc = new btHingeConstraint(*body1, *body2, pivot1, pivot2, axis1, axis2);
+	hc->setDbgDrawSize(btScalar(5.0f));
+	hc->setLimit(lowLimit, highLimit);
+
+	if (m_pWorld) {
+		m_pWorld->addConstraint(hc, true);
+	}
+
+	return hc;
+}
+
+void BulletOpenGLApplication::ApplyTorque(GameObject *object, const btVector3 &torque) {
+
+	object->ApplyTorque(torque);
 
 }
 
-float BulletOpenGLApplication::Normalize(float meters, float dist2Camera, Dimension dimension) {
-
-	float p2m = GetPixelsToMeters(dist2Camera);
-	float m2p = 1 / p2m;
-
-	float pix = meters * m2p;
-
-	switch (dimension)
-	{
-	case BulletOpenGLApplication::HEIGHT:
-		return pix / (m_screenHeight / 2);
-		break;
-	case BulletOpenGLApplication::WIDTH: {
-		
-		float width_proportion = pix / (m_screenWidth / 2);
-		float aspectRatio = m_screenWidth / m_screenHeight;
-		return width_proportion * aspectRatio;
-		//return pix / (m_screenWidth / 2);
-	}
-		break;
-	default:
-		break;
-	}
-
-}
+#pragma endregion INTERACTION

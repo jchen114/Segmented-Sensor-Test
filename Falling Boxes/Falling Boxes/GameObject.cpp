@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "GameObject.h"
 
-GameObject::GameObject(	btCollisionShape *pShape,
-						float mass,
-						const btVector3 &color,
-						const btVector3 &initialPosition,
-						const btQuaternion &initialRotation) {
+GameObject::GameObject(btCollisionShape *pShape,
+	float mass,
+	const btVector3 &color,
+	const btVector3 &initialPosition,
+	const btQuaternion &initialRotation) {
 
 	m_pShape = pShape;	// Store the shape 
 	m_color = color;	// Store the color
@@ -18,7 +18,7 @@ GameObject::GameObject(	btCollisionShape *pShape,
 
 	// Create Motion State from the initial Transform
 	m_pMotionState = new OpenGLMotionState(transform);
-	
+
 	// Calculate the local inertia
 	btVector3 localInertia(0, 0, 0);
 
@@ -32,8 +32,24 @@ GameObject::GameObject(	btCollisionShape *pShape,
 
 	// create the rigid body
 	m_pBody = new btRigidBody(cInfo);
+
+	m_inertia = localInertia;
+	m_mass = mass;
+	// Set pointer to self
+	m_pBody->setUserPointer(this);
 }
 
+
+void GameObject::Reposition(const btVector3 &position, const btQuaternion &orientation) {
+
+	btTransform initialTransform;
+	initialTransform.setOrigin(position);
+	initialTransform.setRotation(orientation);
+
+	m_pBody->setWorldTransform(initialTransform);
+	m_pMotionState->setWorldTransform(initialTransform);
+
+}
 
 GameObject::~GameObject()
 {

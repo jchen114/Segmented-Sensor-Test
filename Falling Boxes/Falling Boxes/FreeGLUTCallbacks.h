@@ -16,7 +16,7 @@ static void KeyboardUpCallback(unsigned char key, int x, int y) {
 	g_pApp->KeyboardUp(key, x, y);
 }
 static void SpecialCallback(int key, int x, int y) {
-	printf("Special key pressed\n");
+	//printf("Special key pressed\n");
 	g_pApp->Special(key, x, y);
 }
 static void SpecialUpCallback(int key, int x, int y) {
@@ -50,7 +50,8 @@ int glutmain(int argc, char **argv, int width, int height, const char* title, Bu
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(width, height);
-	glutCreateWindow(title);
+	int windowID = glutCreateWindow(title);
+	g_pApp->m_main_window_id = windowID;
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
 	// perform custom initialization our of application

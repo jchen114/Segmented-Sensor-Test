@@ -90,9 +90,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BasicTest.h" />
     <ClInclude Include="BulletOpenGLApplication.h" />
     <ClInclude Include="CameraManager.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="DebugDrawer.h" />
     <ClInclude Include="FallingBoxesApplication.h" />
     <ClInclude Include="FreeGLUTCallbacks.h" />
@@ -102,9 +102,9 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BasicTest.cpp" />
     <ClCompile Include="BulletOpenGLApplication.cpp" />
     <ClCompile Include="CameraManager.cpp" />
+    <ClCompile Include="Constants.cpp" />
     <ClCompile Include="DebugDrawer.cpp" />
     <ClCompile Include="Falling Boxes.cpp" />
     <ClCompile Include="FallingBoxesApplication.cpp" />

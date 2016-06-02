@@ -5,6 +5,7 @@
 #include <gl\GL.h>
 #include <freeglut\freeglut.h>
 
+
 #include "BulletDynamics\Dynamics\btDynamicsWorld.h"
 
 // Includes for 2D Boxes and collision between 2D Boxes
@@ -19,10 +20,13 @@
 
 #include "CameraManager.h"
 
+// Constants
+#include "Constants.h"
+
 #include "GameObject.h"
 #include <vector>
 
-#define CAMERA_STEP_SIZE 0.3f
+class DebugDrawer;
 
 typedef std::vector<GameObject*> GameObjects; // GameObjects is a data type for storing game objects
 
@@ -30,11 +34,13 @@ class BulletOpenGLApplication
 {
 public:
 	BulletOpenGLApplication();
-	BulletOpenGLApplication(ProjectionType);
+	BulletOpenGLApplication(ProjectionMode mode);
 
 	~BulletOpenGLApplication();
 
 	void Initialize();
+
+	int m_main_window_id = 0;
 
 	// FreeGLUT callbacks //
 	virtual void Keyboard(unsigned char key, int x, int y);
@@ -64,21 +70,32 @@ public:
 	void DrawShape(btScalar *transform, const btCollisionShape *pShape, const btVector3 &color);
 	void DrawWithTriangles(const btVector3 * vertices, const int *indices, int numberOfIndices);
 
-	void SetScreenWidth(int screenWidth);
-	void SetScreenHeight(int screenHeight);
+	void SetScreenWidth(int width);
+	void SetScreenHeight(int height);
 
 	// Object Functions
+
+	btHingeConstraint *AddHingeConstraint(
+		GameObject *obj1,
+		GameObject *obj2,
+		const btVector3 &pivot1,
+		const btVector3 &pivot2,
+		const btVector3 &axis1,
+		const btVector3 &axis2,
+		btScalar lowLimit,
+		btScalar highLimit);
+
+	void ApplyTorque(GameObject *object, const btVector3 &torque);
+
 	GameObject *CreateGameObject(
-		btCollisionShape *pShape, 
-		const float &mass, 
-		const btVector3 &color = btVector3(1.0f, 1.0f, 1.0f), 
+		btCollisionShape *pShape,
+		const float &mass,
+		const btVector3 &color = btVector3(1.0f, 1.0f, 1.0f),
 		const btVector3 &initialPosition = btVector3(0.0f, 0.0f, 0.0f),
 		const btQuaternion &initialRotation = btQuaternion(0, 0, 1, 1)
 		);
 
 protected:
-
-	enum Dimension{HEIGHT, WIDTH};
 
 	// core Bullet Components
 	btBroadphaseInterface *m_pBroadphase;
@@ -99,13 +116,6 @@ protected:
 	// Debugging
 	// debug renderer
 	DebugDrawer* m_pDebugDrawer;
-
-	float m_screenWidth;
-	float m_screenHeight;
-
-	float GetPixelsToMeters(float distanceToCamera);
-
-	float Normalize(float meters, float dist2Camera, Dimension dimension);
 
 };
 

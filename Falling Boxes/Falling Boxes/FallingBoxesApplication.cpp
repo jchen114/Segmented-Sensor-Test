@@ -7,7 +7,7 @@ FallingBoxesApplication::FallingBoxesApplication()
 {
 }
 
-FallingBoxesApplication::FallingBoxesApplication(ProjectionType projectionType):BulletOpenGLApplication(projectionType) 
+FallingBoxesApplication::FallingBoxesApplication(ProjectionMode projectionType):BulletOpenGLApplication(projectionType) 
 {
 }
 
@@ -48,21 +48,16 @@ void FallingBoxesApplication::Mouse(int button, int state, int x, int y) {
 		{
 			//printf("screen width = %f, screen height = %f\n", m_screenWidth, m_screenHeight);
 			printf("Position of mouse click = (%d, %d)\n", x, y);
-			float x_position = (float)(x - (int)(m_screenWidth / 2));
-			float y_position = (float)(-y + (int)(m_screenHeight / 2));
+			float x_position = (float)(x - (int)(Constants::GetInstance().GetScreenWidth() / 2));
+			float y_position = (float)(-y + (int)(Constants::GetInstance().GetScreenHeight() / 2));
 			printf("Position relative to center = (%f,%f)\n", x_position, y_position);
-			float object_cam_distance = abs(Z_PLANE - m_cameraManager->GetCameraLocation().getZ());
-			printf("object to cam distance = %f\n", object_cam_distance);
-			float x_meters = x_position * GetPixelsToMeters(object_cam_distance);
-			float y_meters = y_position * GetPixelsToMeters(object_cam_distance);
-			printf("x meters, y meters = (%f, %f)\n", x_meters, y_meters);
+			float p2m = 1 / Constants::GetInstance().GetMetersToPixels(m_cameraManager->m_cameraDistance);
+			btVector3 pos(x_position * p2m, y_position * p2m, Z_PLANE); // in meters now
 			btVector3 halfSize(1, 1, 0);
-			btVector3 position(x_meters, y_meters, Z_PLANE);
-			//printf("(x,y) = (%f,%f)\n", x_meters, y_meters);
-			//btVector3 position(0, 20, 10.0f);
-			btVector3 color(((double)rand() / RAND_MAX), ((double)rand() / RAND_MAX), ((double)rand() / RAND_MAX));
-			
-			CreateBox(halfSize, 5, color, position);
+			btVector3 color1(((double)rand() / RAND_MAX), ((double)rand() / RAND_MAX), ((double)rand() / RAND_MAX));
+
+			CreateBox(halfSize, 5, color1, pos);
+
 		}
 			break;
 
@@ -90,7 +85,7 @@ void FallingBoxesApplication::ShutdownPhysics() {
 void FallingBoxesApplication::Create2DBoxes() {
 	printf("Create some boxes \n");
 	// Create a ground box
-	btVector3 halfSize(1, 10, 0);
+	btVector3 halfSize(1, 30, 0);
 	btVector3 position(0, -5, Z_PLANE);
 	CreateBox(halfSize, 0, btVector3(0.1f, 0.3f, 0.8f), position);
 

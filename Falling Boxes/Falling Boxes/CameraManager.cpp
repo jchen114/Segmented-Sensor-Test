@@ -6,16 +6,14 @@
 
 
 CameraManager::CameraManager(
-	const btVector3 &target, 
-	float distance, 
-	float pitch, 
-	float yaw, 
-	const btVector3 &upVector, 
-	float nearPlane, 
+	const btVector3 &target,
+	float distance,
+	float pitch,
+	float yaw,
+	const btVector3 &upVector,
+	float nearPlane,
 	float farPlane)
 {
-	m_screenWidth = 0;
-	m_screenHeight = 0;
 	m_cameraTarget = target;
 	m_cameraDistance = distance;
 	m_cameraPitch = pitch;
@@ -27,53 +25,19 @@ CameraManager::CameraManager(
 	m_cameraPosX = 0;
 	m_cameraPosY = 0;
 
-	m_projectionType = PERSPECTIVE;
-	
-}
+	SetupOrthographicCamera();
 
-void CameraManager::SetProjectionType(ProjectionType type) {
-
-	m_projectionType = type;
-
-	switch (m_projectionType)
-	{
-	case ORTHOGRAPHIC: {
-		SetupOrthographicCamera();
-		m_cameraPosition = btVector3(0, 0, 0);
-	}
-		break;
-	case PERSPECTIVE:
-		SetupPerspectiveCamera();
-		break;
-	default:
-		break;
-	}
-
-}
-
-ProjectionType CameraManager::GetProjectionType() {
-	return m_projectionType;
-}
-
-void CameraManager::SetScreenWidth(int width) {
-	m_screenWidth = width;
-}
-
-void CameraManager::SetScreenHeight(int height) {
-	m_screenHeight = height;
 }
 
 void CameraManager::UpdateCamera() {
 
 	// exit in erroneous situations
-	if (m_screenWidth == 0 && m_screenHeight == 0)
+	if (Constants::GetInstance().GetScreenWidth() == 0 && Constants::GetInstance().GetScreenHeight() == 0)
 		return;
 
-	switch (m_projectionType)
+	switch (Constants::GetInstance().GetProjectionMode())
 	{
 	case ORTHOGRAPHIC:
-		//SetupModelView();
-		//SetupOrthographicModelView();
 		SetupOrthographicCamera();
 		break;
 	case PERSPECTIVE:
@@ -90,13 +54,16 @@ void CameraManager::SetupOrthographicCamera() {
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	//float aspectRatio = m_screenWidth / (float)m_screenHeight;
 
-	// create a viewing frustum based on the aspect ratio and the
-	// boundaries of the camera
-	//glOrtho(0, 1, -1, 1, 1, 100);
-	gluOrtho2D(-1, 1, -1, 1);
-	//TEST_MODEL_VIEW_ORTHO();
+	// boundaries of the camera for projection
+	glOrtho(
+		-Constants::GetInstance().GetScreenWidth() / 2, 
+		Constants::GetInstance().GetScreenWidth() / 2, 
+		-Constants::GetInstance().GetScreenHeight() / 2, 
+		Constants::GetInstance().GetScreenHeight() / 2,
+		-1, 
+		1
+		);
 	SetupOrthographicModelView();
 }
 
@@ -104,10 +71,12 @@ void CameraManager::SetupOrthographicModelView() {
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	// Translate in meters.
+	glTranslatef(m_cameraPosX, m_cameraPosY, 0);
+	// Scale from meters to pixels.
+	float m2p = Constants::GetInstance().GetMetersToPixels(m_cameraDistance);
+	glScalef(m2p, m2p, 0);
 
-	// Translation
-	gluLookAt(m_cameraPosX, m_cameraPosY, 0.0, m_cameraPosX, m_cameraPosY, -1.0f, 0.0, 1.0, 0.0);
-	
 }
 
 
@@ -118,7 +87,7 @@ void CameraManager::SetupPerspectiveCamera() {
 	// set it to the matrix-equivalent of 1
 	glLoadIdentity();
 	// determine the aspect ratio of the screen
-	float aspectRatio = m_screenWidth / (float)m_screenHeight;
+	float aspectRatio = Constants::GetInstance().GetScreenWidth() / (float)Constants::GetInstance().GetScreenHeight();
 	// create a viewing frustum based on the aspect ratio and the
 	// boundaries of the camera
 	glFrustum(-aspectRatio * m_nearPlane, aspectRatio * m_nearPlane, -m_nearPlane, m_nearPlane, m_nearPlane, m_farPlane);
@@ -188,6 +157,7 @@ void CameraManager::SetupPerspectiveModelView() {
 
 }
 
+/* CAMERA MOVEMENT METHODS */
 
 void CameraManager::RotateCamera(RotationType type, float value) {
 	// change the value (it is passed by reference, so we
@@ -219,12 +189,12 @@ void CameraManager::RotateCamera(RotationType type, float value) {
 
 void CameraManager::ZoomCamera(float distance) {
 	// change the distance value
-	m_cameraDistance -= distance;
+	m_cameraDistance += distance;
 	// prevent it from zooming in too far
-	//if (m_cameraDistance < 0.1f) m_cameraDistance = 0.1f;
+	if (m_cameraDistance < 1.0f) m_cameraDistance = 1.0f;
 	// update the camera since we changed the zoom distance
 	UpdateCamera();
-	PrintCameraLocation();
+	//PrintCameraLocation();
 }
 
 void CameraManager::TranslateCamera(TranslateDirection direction, float value) {
@@ -256,15 +226,13 @@ void CameraManager::TranslateCamera(TranslateDirection direction, float value) {
 	default:
 		break;
 	}
-
-	
 	UpdateCamera();
-	PrintCameraLocation();
+	//PrintCameraLocation();
 }
 
 void CameraManager::PrintCameraLocation() {
-	printf("Camera Position = %f, %f, %f\n", m_cameraPosition[0], m_cameraPosition[1], m_cameraPosition[2]);
-	printf("Camera Target = %f, %f, %f \n", m_cameraTarget[0], m_cameraTarget[1], m_cameraTarget[2]);
+	/*printf("Camera Position = %f, %f, %f\n", m_cameraPosition[0], m_cameraPosition[1], m_cameraPosition[2]);
+	printf("Camera Target = %f, %f, %f \n", m_cameraTarget[0], m_cameraTarget[1], m_cameraTarget[2]);*/
 }
 
 btVector3 CameraManager::GetCameraLocation() {
