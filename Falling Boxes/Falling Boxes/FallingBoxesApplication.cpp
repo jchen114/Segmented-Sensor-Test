@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "FallingBoxesApplication.h"
 
-#define Z_PLANE 0.0f
-
 FallingBoxesApplication::FallingBoxesApplication()
 {
 }
@@ -51,7 +49,7 @@ void FallingBoxesApplication::Mouse(int button, int state, int x, int y) {
 			float x_position = (float)(x - (int)(Constants::GetInstance().GetScreenWidth() / 2));
 			float y_position = (float)(-y + (int)(Constants::GetInstance().GetScreenHeight() / 2));
 			printf("Position relative to center = (%f,%f)\n", x_position, y_position);
-			float p2m = 1 / Constants::GetInstance().GetMetersToPixels(m_cameraManager->m_cameraDistance);
+			float p2m = 1.0f / Constants::GetInstance().GetMetersToPixels(m_cameraManager->GetCameraLocation().z());
 			btVector3 pos(x_position * p2m, y_position * p2m, Z_PLANE); // in meters now
 			btVector3 halfSize(1, 1, 0);
 			btVector3 color1(((double)rand() / RAND_MAX), ((double)rand() / RAND_MAX), ((double)rand() / RAND_MAX));
@@ -85,7 +83,7 @@ void FallingBoxesApplication::ShutdownPhysics() {
 void FallingBoxesApplication::Create2DBoxes() {
 	printf("Create some boxes \n");
 	// Create a ground box
-	btVector3 halfSize(1, 30, 0);
+	btVector3 halfSize(30, 1, 0);
 	btVector3 position(0, -5, Z_PLANE);
 	CreateBox(halfSize, 0, btVector3(0.1f, 0.3f, 0.8f), position);
 

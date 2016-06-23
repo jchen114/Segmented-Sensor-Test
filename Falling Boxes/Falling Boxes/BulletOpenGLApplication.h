@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <gl\GL.h>
 #include <freeglut\freeglut.h>
-
+#include <functional>
 
 #include "BulletDynamics\Dynamics\btDynamicsWorld.h"
 
@@ -26,6 +26,26 @@
 #include "GameObject.h"
 #include <vector>
 
+#define RENDER_TIME_STEP 0.02f // 20 ms = 50fps
+
+//Debug
+//#define USEDEBUG
+
+#ifdef USEDEBUG
+//#define Debug( x ) std::cout << x << std::endl
+#else
+#define Debug( x ) 
+#endif
+
+// Realtime
+#define REALTIME
+
+#ifdef REALTIME
+#define BULLET_TIME_STEP 0.002f // 1 ms
+#else
+#define BULLET_TIME_STEP 0.0005f // 1 ms
+#endif
+
 class DebugDrawer;
 
 typedef std::vector<GameObject*> GameObjects; // GameObjects is a data type for storing game objects
@@ -34,7 +54,7 @@ class BulletOpenGLApplication
 {
 public:
 	BulletOpenGLApplication();
-	BulletOpenGLApplication(ProjectionMode mode);
+	BulletOpenGLApplication(ProjectionMode mode, bool isFrameRateFixed = false);
 
 	~BulletOpenGLApplication();
 
@@ -53,6 +73,8 @@ public:
 	virtual void PassiveMotion(int x, int y);
 	virtual void Motion(int x, int y);
 	virtual void Display();
+	virtual void GLUTTimerFunc(int value);
+	virtual void DrawShape(btScalar *transform, const btCollisionShape *pShape, const btVector3 &color);
 
 	// rendering. Can be overrideen by derived classes
 	virtual void RenderScene();
@@ -67,7 +89,8 @@ public:
 	// Drawing Functions
 	void DrawBox(const btVector3 &halfSize);
 	void DrawPlane(const btVector3 &halfSize);
-	void DrawShape(btScalar *transform, const btCollisionShape *pShape, const btVector3 &color);
+	void DrawCircle(const float &radius);
+
 	void DrawWithTriangles(const btVector3 * vertices, const int *indices, int numberOfIndices);
 
 	void SetScreenWidth(int width);
@@ -85,6 +108,13 @@ public:
 		btScalar lowLimit,
 		btScalar highLimit);
 
+	btFixedConstraint *AddFixedConstraint(
+		GameObject *obj1,
+		GameObject *obj2,
+		const btTransform &trans1 = btTransform(btQuaternion(0, 0, 0, 1)),
+		const btTransform &trans2 = btTransform(btQuaternion(0, 0, 0, 1))
+		);
+
 	void ApplyTorque(GameObject *object, const btVector3 &torque);
 
 	GameObject *CreateGameObject(
@@ -92,8 +122,15 @@ public:
 		const float &mass,
 		const btVector3 &color = btVector3(1.0f, 1.0f, 1.0f),
 		const btVector3 &initialPosition = btVector3(0.0f, 0.0f, 0.0f),
-		const btQuaternion &initialRotation = btQuaternion(0, 0, 1, 1)
+		const btQuaternion &initialRotation = btQuaternion(0, 0, 0, 1)
 		);
+
+	// Callback for drawing
+	std::function<void()> m_DrawCallback;
+	std::function<void(btScalar *, const btCollisionShape *, const btVector3 &)> m_DrawShapeCallback;
+
+	float m_DeltaGlutTime;
+	float m_DeltaSimTime;
 
 protected:
 
@@ -106,7 +143,8 @@ protected:
 
 	// clock for counting time
 	btClock m_clock;
-
+	// clock for timing simulation
+	btClock m_SimClock;
 	// Array for game objects
 	GameObjects m_objects;
 
@@ -117,6 +155,17 @@ protected:
 	// debug renderer
 	DebugDrawer* m_pDebugDrawer;
 
+	void DisplayText(float x, float y, const btVector3 &color, const char *string);
+
+	bool m_IsFrameRateFixed;
+	float m_RemainingTime = 0.0f;
+
 };
+
+static BulletOpenGLApplication *m_me;
+
+static void GLUTTimerCallback(int value) {
+	m_me->GLUTTimerFunc(value);
+}
 
 #endif

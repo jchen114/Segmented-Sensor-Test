@@ -38,6 +38,8 @@ void CameraManager::UpdateCamera() {
 	switch (Constants::GetInstance().GetProjectionMode())
 	{
 	case ORTHOGRAPHIC:
+		//SetupModelView();
+		//SetupOrthographicModelView();
 		SetupOrthographicCamera();
 		break;
 	case PERSPECTIVE:
@@ -57,11 +59,11 @@ void CameraManager::SetupOrthographicCamera() {
 
 	// boundaries of the camera for projection
 	glOrtho(
-		-Constants::GetInstance().GetScreenWidth() / 2, 
-		Constants::GetInstance().GetScreenWidth() / 2, 
-		-Constants::GetInstance().GetScreenHeight() / 2, 
+		-Constants::GetInstance().GetScreenWidth() / 2,
+		Constants::GetInstance().GetScreenWidth() / 2,
+		-Constants::GetInstance().GetScreenHeight() / 2,
 		Constants::GetInstance().GetScreenHeight() / 2,
-		-1, 
+		-1,
 		1
 		);
 	SetupOrthographicModelView();
@@ -71,14 +73,19 @@ void CameraManager::SetupOrthographicModelView() {
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	// Scale first
+	float m2p = Constants::GetInstance().GetMetersToPixels(m_cameraDistance);
+	glScalef(m2p, m2p, 1);
 	// Translate in meters.
 	glTranslatef(m_cameraPosX, m_cameraPosY, 0);
-	// Scale from meters to pixels.
-	float m2p = Constants::GetInstance().GetMetersToPixels(m_cameraDistance);
-	glScalef(m2p, m2p, 0);
 
 }
 
+
+void CameraManager::Reset() {
+	m_cameraPosX = 0;
+	m_cameraPosY = 0;
+}
 
 void CameraManager::SetupPerspectiveCamera() {
 
@@ -184,14 +191,14 @@ void CameraManager::RotateCamera(RotationType type, float value) {
 	if (*angle >= 360) *angle -= 360;
 	// update the camera since we changed the angular value
 	UpdateCamera();
-	PrintCameraLocation();
+	//PrintCameraLocation();
 }
 
 void CameraManager::ZoomCamera(float distance) {
 	// change the distance value
-	m_cameraDistance += distance;
+	m_cameraDistance -= distance;
 	// prevent it from zooming in too far
-	if (m_cameraDistance < 1.0f) m_cameraDistance = 1.0f;
+	//if (m_cameraDistance < 0.1f) m_cameraDistance = 0.1f;
 	// update the camera since we changed the zoom distance
 	UpdateCamera();
 	//PrintCameraLocation();
@@ -226,19 +233,20 @@ void CameraManager::TranslateCamera(TranslateDirection direction, float value) {
 	default:
 		break;
 	}
+
+
 	UpdateCamera();
 	//PrintCameraLocation();
 }
 
 void CameraManager::PrintCameraLocation() {
-	/*printf("Camera Position = %f, %f, %f\n", m_cameraPosition[0], m_cameraPosition[1], m_cameraPosition[2]);
-	printf("Camera Target = %f, %f, %f \n", m_cameraTarget[0], m_cameraTarget[1], m_cameraTarget[2]);*/
+	printf("Camera Position = %f, %f, %f\n", m_cameraPosition[0], m_cameraPosition[1], m_cameraPosition[2]);
+	printf("Camera Target = %f, %f, %f \n", m_cameraTarget[0], m_cameraTarget[1], m_cameraTarget[2]);
 }
 
 btVector3 CameraManager::GetCameraLocation() {
-	return m_cameraPosition;
+	return btVector3(m_cameraPosX, m_cameraPosY, m_cameraDistance);
 }
-
 
 CameraManager::~CameraManager()
 {

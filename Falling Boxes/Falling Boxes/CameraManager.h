@@ -25,10 +25,7 @@ public:
 	void TranslateCamera(TranslateDirection direction, float value);
 	void PrintCameraLocation();
 	btVector3 GetCameraLocation();
-
-	float m_cameraPosX;
-	float m_cameraPosY;
-	float m_cameraDistance;
+	void CameraManager::Reset();
 
 protected:
 
@@ -43,10 +40,13 @@ protected:
 	float m_nearPlane;
 	float m_farPlane;
 	btVector3 m_upVector;
-	
+	float m_cameraDistance;
 	float m_cameraPitch;
 	float m_cameraYaw;
-	
+
+	float m_cameraPosX;
+	float m_cameraPosY;
+
 };
 
 #endif

@@ -4,10 +4,14 @@
 enum ProjectionMode{ ORTHOGRAPHIC, PERSPECTIVE };
 enum Dimension{ HEIGHT, WIDTH };
 
-#define CAMERA_STEP_SIZE 3.0f
+#define CAMERA_STEP_SIZE 1.0f
 #define Z_PLANE  0
 
 #define DEG_2_RAD 0.0174533
+#define PI 3.1415927
+#define TWO_PI 2 * PI
+
+#define SCALING_FACTOR 1.0f
 
 class Constants
 {
@@ -35,10 +39,14 @@ public:
 	ProjectionMode GetProjectionMode();
 
 	float GetMetersToPixels(float dist2Camera);
-	float Normalize(float meters, float dist2Camera, Dimension dimension);
 
 	float DegreesToRadians(float degrees);
 	float RadiansToDegrees(float radians);
+
+	// Frame Rate
+	int m_StartTime;
+	int m_PrevTime;
+	int m_CurrentTime;
 
 protected:
 

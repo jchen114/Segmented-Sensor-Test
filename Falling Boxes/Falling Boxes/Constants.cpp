@@ -32,31 +32,7 @@ ProjectionMode Constants::GetProjectionMode() {
 }
 
 float Constants::GetMetersToPixels(float dist2Camera) {
-	return 50 / dist2Camera;
-}
-
-float Constants::Normalize(float meters, float dist2Camera, Dimension dimension) {
-	float p2m = GetMetersToPixels(dist2Camera);
-	float m2p = 1 / p2m;
-
-	float pix = meters * m2p;
-
-	switch (dimension)
-	{
-	case HEIGHT:
-		return pix / ((float)m_screenHeight / 2);
-		break;
-	case WIDTH: {
-
-		float width_proportion = pix / (m_screenWidth / 2);
-		float aspectRatio = m_screenWidth / (float)m_screenHeight;
-		return width_proportion * aspectRatio;
-		//return pix / (m_screenWidth / 2);
-	}
-		break;
-	default:
-		break;
-	}
+	return 50.0f / dist2Camera;
 }
 
 float Constants::DegreesToRadians(float degrees) {
