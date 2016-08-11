@@ -40,7 +40,7 @@ GameObject::GameObject(btCollisionShape *pShape,
 	m_pBody->setUserPointer(this);
 	m_pBody->getCollisionShape()->setUserPointer(this);
 	m_pBody->setRestitution(0.0f);
-	m_pBody->setFriction(5.0f);
+	m_pBody->setFriction(0.4f);
 }
 
 

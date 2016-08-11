@@ -21,6 +21,13 @@ SegmentedSensorTestApp::SegmentedSensorTestApp(ProjectionMode mode):BulletOpenGL
 	m_app = this;
 	m_DrawShapeCallback = std::bind(&SegmentedSensorTestApp::DrawShapeCallback, this, _1, _2, _3);
 	m_DrawCallback = std::bind(&SegmentedSensorTestApp::DrawCallback, this);
+
+	m_drawForwardForceOnUnsegmented = false;
+	m_drawBackwardForceOnUnsegmented = false;
+
+	m_drawForwardForceOnSegmented = false;
+	m_drawBackwardForceOnSegmented = false;
+
 }
 
 void SegmentedSensorTestApp::ShutdownPhysics() {
@@ -51,6 +58,7 @@ void SegmentedSensorTestApp::InitializePhysics() {
 	m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
 
 	m_pWorld->setInternalTickCallback(InternalPostTickCallback, 0, false);
+	m_pWorld->setInternalTickCallback(InternalPreTickCallback, 0, true);
 
 	LoadTextures();
 
@@ -61,27 +69,30 @@ void SegmentedSensorTestApp::InitializePhysics() {
 }
 
 void SegmentedSensorTestApp::Keyboard(unsigned char key, int x, int y) {
+
+	BulletOpenGLApplication::Keyboard(key, x, y);
+
 	switch (key)
 	{
-	case 'v': {
+	case 'y': {
 		// forward force on unsegmented
 		m_drawForwardForceOnUnsegmented = true;
 		m_drawBackwardForceOnUnsegmented = false;
 	}
 		break;
-	case 'b': {
+	case 'u': {
 		// backward force on unsegmented
 		m_drawForwardForceOnUnsegmented = false;
 		m_drawBackwardForceOnUnsegmented = true;
 	}
 		break;
-	case 'n': {
+	case 'i': {
 		// forward force on segmented
 		m_drawForwardForceOnSegmented = true;
 		m_drawBackwardForceOnSegmented = false;
 	}
 		break;
-	case 'm': {
+	case 'o': {
 		// backward force on segmented
 		m_drawForwardForceOnSegmented = false;
 		m_drawBackwardForceOnSegmented = true;
@@ -93,29 +104,28 @@ void SegmentedSensorTestApp::Keyboard(unsigned char key, int x, int y) {
 }
 
 void SegmentedSensorTestApp::KeyboardUp(unsigned char key, int x, int y) {
+
+	BulletOpenGLApplication::KeyboardUp(key, x, y);
+
 	switch (key)
 	{
-	case 'v': {
+	case 'y': {
 		// forward force on unsegmented
 		m_drawForwardForceOnUnsegmented = false;
-		m_drawBackwardForceOnUnsegmented = false;
 	}
 		break;
-	case 'b': {
+	case 'u': {
 		// backward force on unsegmented
-		m_drawForwardForceOnUnsegmented = false;
 		m_drawBackwardForceOnUnsegmented = false;
 	}
 		break;
-	case 'n': {
+	case 'i': {
 		// forward force on segmented
 		m_drawForwardForceOnSegmented = false;
-		m_drawBackwardForceOnSegmented = false;
 	}
 		break;
-	case 'm': {
+	case 'o': {
 		// backward force on segmented
-		m_drawForwardForceOnSegmented = false;
 		m_drawBackwardForceOnSegmented = false;
 	}
 	default:
@@ -216,14 +226,20 @@ void SegmentedSensorTestApp::DrawCallback() {
 	if (m_drawBackwardForceOnUnsegmented) {
 		const btBoxShape *box = static_cast<const btBoxShape*>(m_unsegmented_body->GetShape());
 		btVector3 halfSize = box->getHalfExtentsWithMargin();
+		btVector3 COMPos = m_unsegmented_body->GetCOMPosition();
+		DrawArrow(COMPos + btVector3(halfSize.x(), 0, 0), LEFT);
 	}
 	if (m_drawForwardForceOnSegmented) {
 		const btBoxShape *box = static_cast<const btBoxShape*>(m_segmented_body.front()->GetShape());
 		btVector3 halfSize = box->getHalfExtentsWithMargin();
+		btVector3 COMPos = m_segmented_body.front()->GetCOMPosition();
+		DrawArrow(COMPos + btVector3(-halfSize.x(), 0, 0), RIGHT);
 	}
 	if (m_drawBackwardForceOnSegmented) {
 		const btBoxShape *box = static_cast<const btBoxShape*>(m_segmented_body.back()->GetShape());
 		btVector3 halfSize = box->getHalfExtentsWithMargin();
+		btVector3 COMPos = m_segmented_body.back()->GetCOMPosition();
+		DrawArrow(COMPos + btVector3(halfSize.x(), 0, 0), LEFT);
 	}
 
 	// Draw lines from vertices of unsegmented body
@@ -359,28 +375,28 @@ void SegmentedSensorTestApp::PreTickCallback(btScalar timestep) {
 
 	if (m_drawForwardForceOnUnsegmented)
 	{
-		force = btVector3(0.5f, 0.0f, 0.0f);
+		force = btVector3(3.0f, 0.0f, 0.0f);
 		const btBoxShape *box = static_cast<const btBoxShape*>(m_unsegmented_body->GetShape());
 		btVector3 halfSize = box->getHalfExtentsWithMargin();
-		m_unsegmented_body->GetRigidBody()->applyForce(force, btVector3(-halfSize.x(), 0.0f, 0.0f));
+		m_unsegmented_body->GetRigidBody()->applyImpulse(force, btVector3(-halfSize.x(), 0.0f, 0.0f));
 	}
 	if (m_drawBackwardForceOnUnsegmented) {
-		force = btVector3(-0.5f, 0.0f, 0.0f);
+		force = btVector3(-3.0f, 0.0f, 0.0f);
 		const btBoxShape *box = static_cast<const btBoxShape*>(m_unsegmented_body->GetShape());
 		btVector3 halfSize = box->getHalfExtentsWithMargin();
-		m_unsegmented_body->GetRigidBody()->applyForce(force, btVector3(halfSize.x(), 0.0f, 0.0f));
+		m_unsegmented_body->GetRigidBody()->applyImpulse(force, btVector3(halfSize.x(), 0.0f, 0.0f));
 	}
 	if (m_drawForwardForceOnSegmented) {
-		force = btVector3(0.5f, 0.0f, 0.0f);
-		const btBoxShape *box = static_cast<const btBoxShape*>(m_segmented_body.at(0)->GetShape());
+		force = btVector3(3.0f, 0.0f, 0.0f);
+		const btBoxShape *box = static_cast<const btBoxShape*>(m_segmented_body.front()->GetShape());
 		btVector3 halfSize = box->getHalfExtentsWithMargin();
-		m_segmented_body.at(0)->GetRigidBody()->applyForce(force, btVector3(-halfSize.x(), 0.0f, 0.0f));
+		m_segmented_body.at(0)->GetRigidBody()->applyImpulse(force, btVector3(-halfSize.x(), 0.0f, 0.0f));
 	}
 	if (m_drawBackwardForceOnSegmented) {
-		force = btVector3(-0.5f, 0.0f, 0.0f);
+		force = btVector3(-3.0f, 0.0f, 0.0f);
 		const btBoxShape *box = static_cast<const btBoxShape*>(m_segmented_body.back()->GetShape());
 		btVector3 halfSize = box->getHalfExtentsWithMargin();
-		m_segmented_body.back()->GetRigidBody()->applyForce(force, btVector3(halfSize.x(), 0.0f, 0.0f));
+		m_segmented_body.back()->GetRigidBody()->applyImpulse(force, btVector3(halfSize.x(), 0.0f, 0.0f));
 	}
 
 }
