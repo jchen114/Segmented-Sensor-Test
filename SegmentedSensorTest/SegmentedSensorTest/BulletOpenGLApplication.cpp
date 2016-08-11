@@ -10,8 +10,8 @@ BulletOpenGLApplication::BulletOpenGLApplication()
 	// Create Camera manager
 	m_cameraManager = new CameraManager(
 		btVector3(0.0f, 0.0f, 0.0f),	// Target
-		2,								// Distance
-		20.0f,							// Pitch
+		10,								// Distance
+		30.0f,							// Pitch
 		0.0f,							// Yaw
 		btVector3(0.0f, 1.0f, 0.0f),	// Up Vector
 		1.0f,							// near plane
@@ -20,11 +20,21 @@ BulletOpenGLApplication::BulletOpenGLApplication()
 	m_me = this;
 }
 
-BulletOpenGLApplication::BulletOpenGLApplication(ProjectionMode mode, bool isFrameRateFixed) : BulletOpenGLApplication() {
-	Debug("Constructing BulletOpenGLApplication and building camera");
+BulletOpenGLApplication::BulletOpenGLApplication(ProjectionMode mode, bool isFrameRateFixed, const btVector3 &target, float distance, float pitch, float yaw) {
 	Constants::GetInstance().SetProjectionMode(mode);
 	m_IsFrameRateFixed = isFrameRateFixed;
+	m_cameraManager = new CameraManager(
+		target,
+		distance,							
+		pitch,							
+		yaw,							
+		btVector3(0.0f, 1.0f, 0.0f),	// Up Vector
+		1.0f,							// near plane
+		1000.0f);						// far plane
+
+	m_me = this;
 }
+
 
 BulletOpenGLApplication::~BulletOpenGLApplication() {
 	// Shutdown physics system
@@ -230,7 +240,7 @@ void BulletOpenGLApplication::Idle() {
 		char buf[200];
 		sprintf_s(buf, "physics computation time = %d, numsteps = %d, elapsed time = %f, remaining time = %f, complete time = %f", m, numSteps, dt, m_RemainingTime, completeTime);
 		//printf("camera location x = %f \n", m_cameraManager->GetCameraLocation().x());
-		DisplayText(-m_cameraManager->GetCameraLocation().x(), 2, btVector3(0, 0, 0), buf);
+		DisplayText(-m_cameraManager->GetCameraLocation().x(), 10, btVector3(0, 0, 0), buf);
 		m_DeltaGlutTime = dt;
 #else 
 		if (m_pWorld) {

@@ -2,15 +2,15 @@
 //
 
 #include "stdafx.h"
-#include "BasicTest.h" // For testing
 #include "FreeGLUTCallbacks.h"
 #include "FallingBoxesApplication.h"
-
+#include "SegmentedSensorTestApp.h"
 
 
 int main(int argc, char **argv)
 {
 	//FallingBoxesApplication fallingBoxes(PERSPECTIVE);
-	FallingBoxesApplication fallingBoxes(ORTHOGRAPHIC);
-	return glutmain(argc, argv, 1024, 768, "Falling Boxes", &fallingBoxes);
+	//FallingBoxesApplication fallingBoxes(ORTHOGRAPHIC);
+	SegmentedSensorTestApp segmentedTestApp(PERSPECTIVE);
+	return glutmain(argc, argv, 1024, 768, "SegmentedSensorTestApp", &segmentedTestApp);
 }

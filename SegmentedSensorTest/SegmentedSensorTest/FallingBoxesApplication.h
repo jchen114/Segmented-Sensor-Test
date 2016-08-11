@@ -16,6 +16,7 @@ public:
 	void Create2DBoxes();
 
 	void CreateBox(const btVector3 &halfSize, float mass, const btVector3 &color, const btVector3 &position);
+	void GroundTextureMap(btScalar *transform, const btCollisionShape *shape, const btVector3 &color);
 
 };
 

@@ -54,7 +54,8 @@ class BulletOpenGLApplication
 {
 public:
 	BulletOpenGLApplication();
-	BulletOpenGLApplication(ProjectionMode mode, bool isFrameRateFixed = false);
+	BulletOpenGLApplication::BulletOpenGLApplication(ProjectionMode mode, bool isFrameRateFixed = false, const btVector3 &target = btVector3(0, 0, 0), float distance = 10.0f, float pitch = 10.0f, float yaw = 0.0f);
+
 
 	~BulletOpenGLApplication();
 
@@ -90,6 +91,7 @@ public:
 	void DrawBox(const btVector3 &halfSize);
 	void DrawPlane(const btVector3 &halfSize);
 	void DrawCircle(const float &radius);
+	//void DrawCircle(const float &x, const float &y, const float &radius, const btVector3 &color = btVector3(1.0f, 1.0f, 1.0f));
 
 	void DrawWithTriangles(const btVector3 * vertices, const int *indices, int numberOfIndices);
 
